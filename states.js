@@ -8,24 +8,15 @@ class States {
         }
     }
 
-/*    static getJson(id, fallback = null) {
-        const val = States.get(id);
-        if (val === null) return fallback;
-        try {
-            return JSON.parse(val);
-        } catch {
-            return fallback;
-        }
-    }*/
-
     static getJson(id, fallback = null) {
         try {
             const state = getState(id);
-            if (!state || state.val === null) return fallback;
+            if (!state || state.val === null || state.val === undefined) return fallback;
             const val = state.val;
-            if (typeof val === 'object') return val; // bereits geparst
-            return JSON.parse(val);
-        } catch {
+            if (typeof val === 'object') return val;
+            if (typeof val === 'string') return JSON.parse(val);
+            return fallback;
+        } catch (e) {
             return fallback;
         }
     }
