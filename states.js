@@ -1,55 +1,63 @@
 class States {
-    static get(id, fallback = null) {
+    constructor(api = {}) {
+        this.getState = api.getState ?? getState;
+        this.setState = api.setState ?? setState;
+        this.existsState = api.existsState ?? existsState;
+        this.createState = api.createState ?? createState;
+    }
+
+    get(id, fallback = null) {
         try {
-            const state = getState(id);
-            return (state && state.val !== null) ? state.val : fallback;
+            const state = this.getState(id);
+            if (!state || state.val === null || state.val === undefined) return fallback;
+            return state.val;
         } catch {
             return fallback;
         }
     }
 
-    static getJson(id, fallback = null) {
+    getJson(id, fallback = null) {
         try {
-            const state = getState(id);
+            const state = this.getState(id);
             if (!state || state.val === null || state.val === undefined) return fallback;
             const val = state.val;
             if (typeof val === 'object') return val;
             if (typeof val === 'string') return JSON.parse(val);
             return fallback;
-        } catch (e) {
+        } catch {
             return fallback;
         }
     }
 
-    static set(id, value, ack = false) {
+    set(id, value, ack = false) {
         try {
-            if (existsState(id)) {
-                setState(id, value, ack);
+            if (this.existsState(id)) {
+                this.setState(id, value, ack);
             }
         } catch {
-            // State existiert nicht oder Fehler beim Schreiben
+            // ignorieren
         }
     }
 
-    static createIfMissing(id, value, common) {
+    createIfMissing(id, value, common) {
         try {
-            if (!existsState(id)) {
-                createState(id, value, common);
+            if (!this.existsState(id)) {
+                this.createState(id, value, common);
             }
         } catch {
-            // Fehler beim Anlegen ignorieren
+            // ignorieren
         }
     }
 
-    static createOrSet(id, value, common) {
+    createOrSet(id, value, common) {
         try {
-            if (!existsState(id)) {
-                createState(id, value, common);
+            if (!this.existsState(id)) {
+                this.createState(id, value, common);
             } else {
-                setState(id, value);
+                this.setState(id, value);
             }
         } catch {
-            // Fehler ignorieren
+            // ignorieren
         }
     }
 }

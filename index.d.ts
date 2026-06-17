@@ -110,9 +110,15 @@ export class Scheduler {
 }
 
 export class States {
-    static get(id: string, fallback?: any): any;
-    static getJson(id: string, fallback?: any): any;
-    static set(id: string, value: any, ack?: boolean): void;
-    static createIfMissing(id: string, value: any, common: Record<string, any>): void;
-    static createOrSet(id: string, value: any, common: Record<string, any>): void;
+    constructor(api?: {
+        getState?: Function;
+        setState?: Function;
+        existsState?: Function;
+        createState?: Function;
+    });
+    get(id: string, fallback?: any): any;
+    getJson(id: string, fallback?: any): any;
+    set(id: string, value: any, ack?: boolean): void;
+    createIfMissing(id: string, value: any, common: Record<string, any>): void;
+    createOrSet(id: string, value: any, common: Record<string, any>): void;
 }
