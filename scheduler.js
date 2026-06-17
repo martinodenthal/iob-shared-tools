@@ -165,7 +165,7 @@ class Scheduler {
         return dt;
     }
 
-    _resolveSunTime(event, angle) {
+/*    _resolveSunTime(event, angle) {
         if (!['sunrise', 'sunset'].includes(event)) return null;
 
         const direction = event === 'sunrise' ? 'Up' : 'Down';
@@ -187,8 +187,35 @@ class Scheduler {
         }
 
         return dt instanceof Date && !Number.isNaN(dt.getTime()) ? dt : null;
-    }
+    }*/
 
+    _resolveSunTime(event, angle) {
+        if (!['sunrise', 'sunset'].includes(event)) return null;
+
+        const riseKey = `customRise${angle}`;
+        const setKey  = `customSet${angle}`;
+        
+        // Beide Keys müssen verschieden sein
+        SunCalc.addTime(angle, riseKey, setKey);
+
+        const times = SunCalc.getTimes(new Date(), this.latitude, this.longitude);
+        const key = event === 'sunrise' ? riseKey : setKey;
+
+        let dt = times[key];
+        if (!(dt instanceof Date) || Number.isNaN(dt.getTime())) {
+            return null;
+        }
+
+        if (dt <= new Date()) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const timesTomorrow = SunCalc.getTimes(tomorrow, this.latitude, this.longitude);
+            dt = timesTomorrow[key];
+        }
+
+        return dt instanceof Date && !Number.isNaN(dt.getTime()) ? dt : null;
+    }
+    
     _isBetween(on, off, now = new Date()) {
         if (on instanceof Date && off instanceof Date) {
             return now >= on && now < off;
