@@ -53,7 +53,7 @@ class Scheduler {
     set(id, at, callback, action) {
         this.clear(id);
 
-        const runAt = this._resolveTime(at);
+        const runAt = this.resolveTime(at);
         if (!runAt) return false;
 
         const now = new Date();
@@ -84,8 +84,8 @@ class Scheduler {
     setPair(id, on, off, callback, action) {
         this.clear(id);
 
-        const onTime = this._resolveTime(on);
-        const offTime = this._resolveTime(off);
+        const onTime = this.resolveTime(on);
+        const offTime = this.resolveTime(off);
 
         if (!onTime && !offTime) return false;
 
@@ -115,7 +115,7 @@ class Scheduler {
         return this._isBetween(onTime, offTime, now);
     }
 
-    _resolveTime(definition) {
+    resolveTime(definition) {
         if (!definition) return null;
 
         if (definition instanceof Date) {

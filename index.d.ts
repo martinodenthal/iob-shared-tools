@@ -105,6 +105,8 @@ export class Scheduler {
         callback: (id: string, action: any, state: boolean) => void,
         action?: any
     ): boolean;
+
+    resolveTime(definition: SchedulerTime): Date | null;
 }
 
 export class States {
