@@ -106,3 +106,11 @@ export class Scheduler {
         action?: any
     ): boolean;
 }
+
+export class States {
+    static get(id: string, fallback?: any): any;
+    static getJson(id: string, fallback?: any): any;
+    static set(id: string, value: any, ack?: boolean): void;
+    static createIfMissing(id: string, value: any, common: Record<string, any>): void;
+    static createOrSet(id: string, value: any, common: Record<string, any>): void;
+}
