@@ -1,7 +1,11 @@
 class States {
     static get(id, fallback = null) {
-        const state = getState(id);
-        return (state && state.val !== null) ? state.val : fallback;
+        try {
+            const state = getState(id);
+            return (state && state.val !== null) ? state.val : fallback;
+        } catch {
+            return fallback;
+        }
     }
 
     static getJson(id, fallback = null) {
@@ -15,22 +19,34 @@ class States {
     }
 
     static set(id, value, ack = false) {
-        if (existsState(id)) {
-            setState(id, value, ack);
+        try {
+            if (existsState(id)) {
+                setState(id, value, ack);
+            }
+        } catch {
+            // State existiert nicht oder Fehler beim Schreiben
         }
     }
 
     static createIfMissing(id, value, common) {
-        if (!existsState(id)) {
-            createState(id, value, common);
+        try {
+            if (!existsState(id)) {
+                createState(id, value, common);
+            }
+        } catch {
+            // Fehler beim Anlegen ignorieren
         }
     }
 
     static createOrSet(id, value, common) {
-        if (!existsState(id)) {
-            createState(id, value, common);
-        } else {
-            setState(id, value);
+        try {
+            if (!existsState(id)) {
+                createState(id, value, common);
+            } else {
+                setState(id, value);
+            }
+        } catch {
+            // Fehler ignorieren
         }
     }
 }
