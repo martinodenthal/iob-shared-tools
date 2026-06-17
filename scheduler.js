@@ -19,21 +19,20 @@ class Scheduler {
         this.options = options;
         this.timers = {};
 
-        const jsInstance = typeof getObject === 'function'
-            ? getObject('system.adapter.javascript.0')
-            : null;
+        const getObj = api.getObject ?? (typeof getObject === 'function' ? getObject : null);
+        const sysConfig = getObj ? getObj('system.config') : null;
 
         this.latitude =
             options.latitude ??
-            jsInstance?.native?.latitude ??
+            sysConfig?.common?.latitude ??
             0;
 
         this.longitude =
             options.longitude ??
-            jsInstance?.native?.longitude ??
+            sysConfig?.common?.longitude ??
             0;
     }
-
+    
     clear(id) {
         if (!this.timers[id]) return;
         if (this.timers[id].primaryHandle) {

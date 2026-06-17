@@ -72,7 +72,11 @@ export type SchedulerApi = {
 
 export class Scheduler {
     constructor(
-        api?: SchedulerApi,
+        api?: {
+            schedule?: Function;
+            clearSchedule?: Function;
+            getObject?: Function;
+        },
         options?: {
             latitude?: number;
             longitude?: number;
