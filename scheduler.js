@@ -154,16 +154,7 @@ class Scheduler {
         const key = event === 'sunrise' ? riseKey : setKey;
 
         const times = SunCalc.getTimes(new Date(), this.latitude, this.longitude);
-        let dt = times[key];
-
-        if (!(dt instanceof Date) || Number.isNaN(dt.getTime())) return null;
-
-        if (dt <= new Date()) {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const timesTomorrow = SunCalc.getTimes(tomorrow, this.latitude, this.longitude);
-            dt = timesTomorrow[key];
-        }
+        const dt = times[key];
 
         return dt instanceof Date && !Number.isNaN(dt.getTime()) ? dt : null;
     }
