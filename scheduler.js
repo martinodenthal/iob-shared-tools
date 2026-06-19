@@ -33,14 +33,26 @@ class Scheduler {
             0;
     }
     
+    // Einmaligen Timer setzen — nutzt ioBrokers sandbox-setTimeout wenn verfügbar,
+    // sonst Node.js-global. Beide Seiten müssen aus derselben Quelle stammen.
+    _scheduleAt(date, callback) {
+        const delay = date.getTime() - Date.now();
+        if (delay <= 0) return null;
+        return (this.api.setTimeout ?? setTimeout)(callback, delay);
+    }
+
+    _cancelAt(handle) {
+        if (handle !== null) (this.api.clearTimeout ?? clearTimeout)(handle);
+    }
+
     clear(id) {
         if (!this.timers[id]) return;
         if (this.timers[id].primaryHandle) {
-            this.api.clearSchedule(this.timers[id].primaryHandle);
+            this._cancelAt(this.timers[id].primaryHandle);
             this.timers[id].primaryHandle = null;
         }
         if (this.timers[id].secondaryHandle) {
-            this.api.clearSchedule(this.timers[id].secondaryHandle);
+            this._cancelAt(this.timers[id].secondaryHandle);
             this.timers[id].secondaryHandle = null;
         }
     }
@@ -68,7 +80,7 @@ class Scheduler {
         if (runAt <= now) return false;
         this.timers[id] = {
             mode: 'single',
-            primaryHandle: this.api.schedule(runAt, () => {
+            primaryHandle: this._scheduleAt(runAt, () => {
                 callback(id, action);
             }),
             secondaryHandle: null,
@@ -102,12 +114,12 @@ class Scheduler {
             off: offTime
         };
         if (onTime && onTime > now) {
-            this.timers[id].primaryHandle = this.api.schedule(onTime, () => {
+            this.timers[id].primaryHandle = this._scheduleAt(onTime, () => {
                 callback(id, action, true);
             });
         }
         if (offTime && offTime > now) {
-            this.timers[id].secondaryHandle = this.api.schedule(offTime, () => {
+            this.timers[id].secondaryHandle = this._scheduleAt(offTime, () => {
                 callback(id, action, false);
             });
         }
@@ -164,6 +176,38 @@ class Scheduler {
         if (on instanceof Date && !off) return now >= on;
         if (!on && off instanceof Date) return now < off;
         return false;
+    }
+
+    // Gibt Azimut (0-360°, Kompass) und Elevation (°) für einen Zeitpunkt zurück
+    getSunPosition(date = new Date()) {
+        const pos = SunCalc.getPosition(date, this.latitude, this.longitude);
+        return {
+            azimuth:   (pos.azimuth  * 180 / Math.PI + 180) % 360,
+            elevation:  pos.altitude * 180 / Math.PI
+        };
+    }
+
+    // Berechnet Eintritts- und Austrittszeit der Sonne aus einem Azimut-Fenster für heute.
+    // Iteriert den Tag in 5-Minuten-Schritten; gibt null zurück wenn kein Eintritt/Austritt stattfindet.
+    resolveAzimuthWindow(azimuthMin, azimuthMax, elevationMin) {
+        const start = new Date();
+        start.setHours(4, 0, 0, 0);
+        let enterTime = null;
+        let exitTime  = null;
+        let inWindow  = false;
+
+        for (let min = 0; min < 20 * 60; min += 5) {
+            const t   = new Date(start.getTime() + min * 60000);
+            const pos = this.getSunPosition(t);
+            const inCond = pos.elevation >= elevationMin
+                        && pos.azimuth  >= azimuthMin
+                        && pos.azimuth  <= azimuthMax;
+
+            if (inCond && !inWindow)      { enterTime = t; inWindow = true; }
+            else if (!inCond && inWindow) { exitTime  = t; break; }
+        }
+
+        return { enterTime, exitTime };
     }
 }
 

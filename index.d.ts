@@ -76,6 +76,8 @@ export class Scheduler {
             schedule?: Function;
             clearSchedule?: Function;
             getObject?: Function;
+            setTimeout?: Function;
+            clearTimeout?: Function;
         },
         options?: {
             latitude?: number;
@@ -104,13 +106,27 @@ export class Scheduler {
     
     setPair(
         id: string,
-        on: SchedulerTime,
-        off: SchedulerTime,
+        on:  SchedulerTime | null,
+        off: SchedulerTime | null,
         callback: (id: string, action: any, state: boolean) => void,
         action?: any
     ): boolean;
 
     resolveTime(definition: SchedulerTime): Date | null;
+
+    getSunPosition(date?: Date): {
+        azimuth:   number;  // Kompass-Grad: 0° = Nord, 90° = Ost, 180° = Süd, 270° = West
+        elevation: number;  // Grad über dem Horizont
+    };
+
+    resolveAzimuthWindow(
+        azimuthMin:   number,
+        azimuthMax:   number,
+        elevationMin: number
+    ): {
+        enterTime: Date | null;
+        exitTime:  Date | null;
+    };
 }
 
 export class States {
