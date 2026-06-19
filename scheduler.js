@@ -129,6 +129,10 @@ class Scheduler {
     resolveTime(definition) {
         if (!definition) return null;
         if (definition instanceof Date) return definition;
+        // Cross-realm Date (aus ioBroker VM-Kontext): instanceof schlägt fehl → Duck-Typing
+        if (typeof definition === 'object' && typeof definition.getTime === 'function') {
+            return new Date(+definition);
+        }
         if (typeof definition !== 'object' || !definition.type) return null;
 
         switch (definition.type) {
